@@ -1,20 +1,76 @@
-import React from "react";
-import { SafeAreaView, AsyncStorage, Text, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import {
+  SafeAreaView,
+  AsyncStorage,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  Alert
+} from "react-native";
+
+import api from "../services/api";
 
 export default function Book({ navigation }) {
   const id = navigation.getParam("id");
+  const [date, setDate] = useState("");
+
+  async function handleSubmit() {
+    const user_id = await AsyncStorage.getItem("user");
+    await api.post(
+      `/spots/${id}/bookings`,
+      {
+        date
+      },
+      {
+        headers: { user_id }
+      }
+    );
+
+    Alert.alert("Solicitação de reserva enviada.");
+    navigation.navigate("List");
+  }
+
+  async function handleCancel() {
+    navigation.navigate("List");
+  }
+  
   return (
-    <SafeAreaView>
-      <Text>{id}</Text>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.label}>DATA DE INTERESSE *</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Qual data você quer reservar?"
+        placeholderTextColor="#999"
+        autoCapitalize="words"
+        autoCorrect={false}
+        value={date}
+        onChangeText={setDate}
+      ></TextInput>
+
+      <TouchableOpacity onPress={handleSubmit} style={styles.button}>
+        <Text style={styles.buttonText}>Solicitar Reserva</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={handleCancel}
+        style={[styles.button, styles.cancelButton]}
+      >
+        <Text style={styles.buttonText}>Cancelar</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    margin: 30
+  },
   label: {
     fontWeight: "bold",
     color: "#444",
-    marginBottom: 8
+    marginBottom: 8,
+    marginTop: 30
   },
   input: {
     borderWidth: 1,
@@ -32,11 +88,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 2,
-    marginTop: 15
+    marginTop: 10
+  },
+  cancelButton: {
+    backgroundColor: "#ccc"
   },
   buttonText: {
     color: "#FFF",
     fontWeight: "bold",
     fontSize: 15
   }
-})
+});
